@@ -1,0 +1,124 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/tenantDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ENTER-TEAM-ID": {
+            "type": "String",
+            "metadata": {
+                "description": "Provide prefix for the management group structure."
+            }
+        },
+        "landingZoneMgs": {
+            "defaultValue": [
+                "online",
+                "corp"
+            ],
+            "type": "Array",
+            "metadata": {
+                "description": "These are the landing zone management groups."
+            }
+        }
+    },
+    "variables": {
+        "enterpriseScaleManagementGroups": {
+            "platform": "[concat(parameters('ENTER-TEAM-ID'), '-', 'platform')]",
+            "landingZone": "[concat(parameters('ENTER-TEAM-ID'), '-', 'landingzones')]",
+            "decommissioned": "[concat(parameters('ENTER-TEAM-ID'), '-', 'decommissioned')]",
+            "sandboxes": "[concat(parameters('ENTER-TEAM-ID'), '-', 'sandboxes')]"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('ENTER-TEAM-ID')]",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('enterpriseScaleManagementGroups').platform]",
+            "dependsOn": [
+                "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+            ],
+            "properties": {
+                "displayName": "[variables('enterpriseScaleManagementGroups').platform]",
+                "details": {
+                    "parent": {
+                        "id": "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('enterpriseScaleManagementGroups').landingZone]",
+            "dependsOn": [
+                "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+            ],
+            "properties": {
+                "displayName": "[variables('enterpriseScaleManagementGroups').landingZone]",
+                "details": {
+                    "parent": {
+                        "id": "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('enterpriseScaleManagementGroups').sandboxes]",
+            "dependsOn": [
+                "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+            ],
+            "properties": {
+                "displayName": "[variables('enterpriseScaleManagementGroups').sandboxes]",
+                "details": {
+                    "parent": {
+                        "id": "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('enterpriseScaleManagementGroups').decommissioned]",
+            "dependsOn": [
+                "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+            ],
+            "properties": {
+                "displayName": "[variables('enterpriseScaleManagementGroups').decommissioned]",
+                "details": {
+                    "parent": {
+                        "id": "[tenantResourceId('Microsoft.Management/managementGroups/', parameters('ENTER-TEAM-ID'))]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Management/managementGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('ENTER-TEAM-ID'), '-', parameters('landingZoneMgs')[copyIndex()])]",
+            "dependsOn": [
+                "[tenantResourceId('Microsoft.Management/managementGroups/', variables('enterpriseScaleManagementGroups').landingZone)]"
+            ],
+            "properties": {
+                "displayName": "[concat(parameters('ENTER-TEAM-ID'), '-', parameters('landingZoneMgs')[copyIndex()])]",
+                "details": {
+                    "parent": {
+                        "id": "[tenantResourceId('Microsoft.Management/managementGroups/', variables('enterpriseScaleManagementGroups').landingZone)]"
+                    }
+                }
+            },
+            "copy": {
+                "name": "lzMgCopy",
+                "count": "[length(parameters('landingZoneMgs'))]"
+            },
+            "condition": "[not(empty(parameters('landingZoneMgs')))]"
+        }
+    ],
+    "outputs": {}
+}
